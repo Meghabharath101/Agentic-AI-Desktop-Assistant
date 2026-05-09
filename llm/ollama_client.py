@@ -4,16 +4,24 @@ import re
 from config import MODEL, SYSTEM_PROMPT
 
 
+# =========================================================
+# EXTRACT JSON FROM MODEL OUTPUT
+# =========================================================
+
 def extract_json(text):
     """
-    Extract first valid JSON object from messy LLM output.
+    Extract the first valid JSON object from model output.
     """
+
+    # Direct parse
     try:
         return json.loads(text)
     except:
         pass
 
+    # Extract embedded JSON
     match = re.search(r"\{.*\}", text, re.DOTALL)
+
     if match:
         try:
             return json.loads(match.group())
@@ -23,33 +31,93 @@ def extract_json(text):
     return None
 
 
-def query_llm(user_input):
-    prompt = SYSTEM_PROMPT + "\nUser: " + user_input
+# =========================================================
+# MAIN LLM QUERY FUNCTION
+# =========================================================
 
+def query_llm(user_input):
+
+    # Proper structured prompt
+    prompt = f"""
+{SYSTEM_PROMPT}
+
+User Request:
+{user_input}
+
+Assistant:
+"""
+
+    # Run Ollama model
     result = subprocess.run(
         ["ollama", "run", MODEL],
         input=prompt,
         text=True,
-        capture_output=True
+        capture_output=True,
+        encoding="utf-8"
     )
 
+    # Raw output
     output = result.stdout.strip()
 
-    # Clean ANSI escape codes
-    output = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', output).strip()
+    # =====================================================
+    # CLEAN OUTPUT
+    # =====================================================
+
+    # Remove ANSI terminal escape codes
+    output = re.sub(
+        r'\x1b\[[0-9;]*[a-zA-Z]',
+        '',
+        output
+    )
+
+    # Remove HTML/XML tags
+    output = re.sub(
+        r'<[^>]+>',
+        '',
+        output
+    )
+
+    # Remove markdown code fences
+    output = re.sub(
+        r'```json|```',
+        '',
+        output
+    )
+
+    output = output.strip()
+
+    # =====================================================
+    # TRY JSON PARSING
+    # =====================================================
 
     parsed = extract_json(output)
 
     if parsed and isinstance(parsed, dict):
+
         msg_type = parsed.get("type", "")
 
-        # Answer → return plain text directly
+        # -------------------------
+        # NORMAL ANSWER
+        # -------------------------
         if msg_type == "answer":
-            return parsed.get("content", "").strip()
 
-        # Action → return dict so core.py can execute the tool
+            content = parsed.get("content", "").strip()
+
+            if content:
+                return content
+
+        # -------------------------
+        # ACTION REQUEST
+        # -------------------------
         if msg_type == "action":
             return parsed
 
-    # Fallback: return raw text as-is
+    # =====================================================
+    # FALLBACK SAFETY
+    # =====================================================
+
+    # If empty after cleaning
+    if not output:
+        return "I couldn't generate a valid response."
+
     return output
