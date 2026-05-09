@@ -46,31 +46,45 @@ def search_web(query):
 
 
 # =========================================================
-# SEND WHATSAPP MESSAGE
+# SEND WHATSAPP MESSAGE TO CONTACT
 # =========================================================
 
-def send_whatsapp_message(contact, message):
+def send_whatsapp_message(contact_name, message):
 
     try:
 
-        # Auto add +91
-        if not contact.startswith("+"):
-            contact = "+91" + contact
-
-        pywhatkit.sendwhatmsg_instantly(
-            phone_no=contact,
-            message=message,
-            wait_time=30,
-            tab_close=False
-        )
+        # Open WhatsApp Web
+        webbrowser.open("https://web.whatsapp.com")
 
         # Wait for WhatsApp to load
-        time.sleep(8)
+        time.sleep(15)
 
-        # Press Enter to send
+        # Click search box
+        pyautogui.click(x=250, y=175)
+
+        time.sleep(1)
+
+        # Search contact
+        pyautogui.write(contact_name, interval=0.05)
+
+        time.sleep(3)
+
+        # Open chat
         pyautogui.press("enter")
 
-        return f"WhatsApp message sent to {contact}"
+        time.sleep(2)
+
+        # Type message
+        pyautogui.write(message, interval=0.03)
+
+        time.sleep(1)
+
+        # Send message
+        pyautogui.press("enter")
+
+        return (
+            f"Sent WhatsApp message to {contact_name}"
+        )
 
     except Exception as e:
 
@@ -85,27 +99,23 @@ def send_whatsapp_group_message(group_name, message):
 
     try:
 
-        import webbrowser
-        import pyautogui
-        import time
-
         # Open WhatsApp Web
         webbrowser.open("https://web.whatsapp.com")
 
-        # Wait for WhatsApp to fully load
+        # Wait for WhatsApp to load
         time.sleep(15)
 
-        # CLICK WHATSAPP SEARCH BOX
+        # Click search box
         pyautogui.click(x=250, y=175)
 
         time.sleep(1)
 
-        # Type group name
+        # Search group
         pyautogui.write(group_name, interval=0.05)
 
         time.sleep(3)
 
-        # Open chat
+        # Open group
         pyautogui.press("enter")
 
         time.sleep(2)
@@ -125,6 +135,7 @@ def send_whatsapp_group_message(group_name, message):
     except Exception as e:
 
         return f"WhatsApp Group Error: {str(e)}"
+
 
 # =========================================================
 # DETECT OPERATING SYSTEM
@@ -197,7 +208,7 @@ def open_app(app_name):
 
             return "Chrome not found."
 
-        # Normal opening
+        # Normal app opening
         if os_type == "darwin":
 
             subprocess.run([

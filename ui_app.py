@@ -35,14 +35,12 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-    /* Google Font */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
 
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
 
-    /* Hide Streamlit Branding */
     header {
         visibility: hidden;
     }
@@ -56,14 +54,12 @@ st.markdown("""
         padding-bottom: 1rem;
     }
 
-    /* Sidebar */
     [data-testid="stSidebar"] {
         background-color: #0f172a;
         color: white;
         border-right: 1px solid #1e293b;
     }
 
-    /* Main Wrapper */
     .main-chat-wrapper {
         max-width: 900px;
         margin: 0 auto;
@@ -71,7 +67,6 @@ st.markdown("""
         flex-direction: column;
     }
 
-    /* Chat Bubble */
     .chat-bubble {
         padding: 1rem 1.25rem;
         border-radius: 14px;
@@ -84,7 +79,6 @@ st.markdown("""
         animation: fadeIn 0.3s ease-in;
     }
 
-    /* User Bubble */
     .user-bubble {
         background-color: #ffffff;
         color: #1e293b;
@@ -93,7 +87,6 @@ st.markdown("""
         box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     }
 
-    /* Assistant Bubble */
     .assistant-bubble {
         background-color: #f8fafc;
         color: #334155;
@@ -101,7 +94,6 @@ st.markdown("""
         border-left: 4px solid #3b82f6;
     }
 
-    /* Fade Animation */
     @keyframes fadeIn {
 
         from {
@@ -115,7 +107,6 @@ st.markdown("""
         }
     }
 
-    /* Scrollbar */
     ::-webkit-scrollbar {
         width: 10px;
     }
@@ -138,31 +129,26 @@ def safe_text(text):
     if not isinstance(text, str):
         text = str(text)
 
-    # Replace problematic arrows
     text = text.replace("→", "->")
 
-    # Remove ANSI terminal codes
     text = re.sub(
         r'\x1b\[[0-9;]*[a-zA-Z]',
         '',
         text
     )
 
-    # Remove HTML/XML tags
     text = re.sub(
         r'<[^>]+>',
         '',
         text
     )
 
-    # Remove markdown code fences
     text = re.sub(
         r'```json|```',
         '',
         text
     )
 
-    # UTF-8 cleanup
     text = text.encode(
         "utf-8",
         "ignore"
@@ -176,18 +162,11 @@ def safe_text(text):
 # =========================================================
 
 def parse_response(raw_response):
-    """
-    Extract clean text from JSON-wrapped agent responses.
-    """
 
     if not isinstance(raw_response, str):
         return str(raw_response)
 
     stripped = raw_response.strip()
-
-    # -----------------------------------------------------
-    # TRY DIRECT JSON PARSE
-    # -----------------------------------------------------
 
     try:
 
@@ -207,7 +186,6 @@ def parse_response(raw_response):
                 if key in parsed and isinstance(parsed[key], str):
                     return parsed[key].strip()
 
-            # Fallback combine values
             values = [
                 v for v in parsed.values()
                 if isinstance(v, str)
@@ -218,10 +196,6 @@ def parse_response(raw_response):
 
     except (json.JSONDecodeError, TypeError):
         pass
-
-    # -----------------------------------------------------
-    # TRY EMBEDDED JSON
-    # -----------------------------------------------------
 
     start = stripped.find("{")
     end = stripped.rfind("}")
@@ -277,7 +251,6 @@ with st.sidebar:
     st.caption("OS: Windows / Linux / macOS")
     st.caption("Status: Connected")
 
-    # Reset button
     if st.button(
         "Reset Environment",
         use_container_width=True
@@ -324,13 +297,10 @@ with chat_placeholder:
             else "assistant-bubble"
         )
 
-        # Clean text
         safe_content = safe_text(chat["content"])
 
-        # Escape HTML safely
         safe_content = html.escape(safe_content)
 
-        # Preserve line breaks
         safe_content = safe_content.replace(
             "\n",
             "<br>"
@@ -355,18 +325,10 @@ if prompt := st.chat_input(
     "Enter a system command (e.g., 'Open Chrome')"
 ):
 
-    # -----------------------------------------------------
-    # SAVE USER MESSAGE
-    # -----------------------------------------------------
-
     st.session_state.chat_history.append({
         "role": "user",
         "content": safe_text(prompt)
     })
-
-    # -----------------------------------------------------
-    # PROCESS REQUEST
-    # -----------------------------------------------------
 
     with st.spinner("Processing request..."):
 
@@ -381,10 +343,6 @@ if prompt := st.chat_input(
         except Exception as e:
 
             response = f"Critical Error: {str(e)}"
-
-    # -----------------------------------------------------
-    # SAVE ASSISTANT RESPONSE
-    # -----------------------------------------------------
 
     st.session_state.chat_history.append({
         "role": "assistant",
