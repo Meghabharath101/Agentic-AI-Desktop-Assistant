@@ -38,3 +38,43 @@ Time: 16:21
 Phone Number: +919447571550
 Message: hello
 --------------------
+Date: 10/5/2026
+Time: 22:39
+Phone Number: +919447571550
+Message: hello from my ai assistant
+--------------------
+Date: 10/5/2026
+Time: 22:40
+Phone Number: +919447571550
+Message: hello from my ai assistant
+--------------------
+Date: 10/5/2026
+Time: 22:47
+Phone Number: +919447571550
+Message: hello from my ai assistant
+--------------------
+Date: 10/5/2026
+Time: 23:14
+Phone Number: +919447571550
+Message: hello from my ai assistant
+--------------------
+Date: 10/5/2026
+Time: 23:15
+Phone Number: +919447571550
+Message: hello from my ai assistant
+--------------------
+Date: 10/5/2026
+Time: 23:17
+Phone Number: +919447571550
+Message: hello from my ai assistant
+--------------------
+Date: 11/5/2026
+Time: 8:49
+Phone Number: +919447571550
+Message: testing my new ai assistant
+--------------------
+Date: 11/5/2026
+Time: 15:22
+Phone Number: +919447571550
+Message: testing my new ai assistant
+--------------------

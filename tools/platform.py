@@ -46,45 +46,87 @@ def search_web(query):
 
 
 # =========================================================
-# SEND WHATSAPP MESSAGE TO CONTACT
+# SEND WHATSAPP MESSAGE
 # =========================================================
 
-def send_whatsapp_message(contact_name, message):
+def send_whatsapp_message(target, message):
 
     try:
 
-        # Open WhatsApp Web
-        webbrowser.open("https://web.whatsapp.com")
+        import re
 
-        # Wait for WhatsApp to load
-        time.sleep(15)
+        # =================================================
+        # PHONE NUMBER MODE
+        # =================================================
 
-        # Click search box
-        pyautogui.click(x=250, y=175)
+        digits = re.sub(r"\D", "", target)
 
-        time.sleep(1)
+        if len(digits) >= 10:
 
-        # Search contact
-        pyautogui.write(contact_name, interval=0.05)
+            # Add India code if missing
+            if not digits.startswith("91"):
+                digits = "91" + digits
 
-        time.sleep(3)
+            pywhatkit.sendwhatmsg_instantly(
+                phone_no=f"+{digits}",
+                message=message,
+                wait_time=30,
+                tab_close=False
+            )
 
-        # Open chat
-        pyautogui.press("enter")
+            # Wait for WhatsApp Web
+            time.sleep(15)
 
-        time.sleep(2)
+            # Click message area
+            pyautogui.click(x=950, y=980)
 
-        # Type message
-        pyautogui.write(message, interval=0.03)
+            time.sleep(1)
 
-        time.sleep(1)
+            # Press Enter to send
+            pyautogui.press("enter")
 
-        # Send message
-        pyautogui.press("enter")
+            return (
+                f"Sent WhatsApp message to +{digits}"
+            )
 
-        return (
-            f"Sent WhatsApp message to {contact_name}"
-        )
+        # =================================================
+        # CONTACT / GROUP SEARCH MODE
+        # =================================================
+
+        else:
+
+            # Open WhatsApp Web
+            webbrowser.open("https://web.whatsapp.com")
+
+            # Wait for WhatsApp to load
+            time.sleep(15)
+
+            # Click search box
+            pyautogui.click(x=250, y=175)
+
+            time.sleep(1)
+
+            # Search contact/group
+            pyautogui.write(target, interval=0.05)
+
+            time.sleep(3)
+
+            # Open chat
+            pyautogui.press("enter")
+
+            time.sleep(2)
+
+            # Type message
+            pyautogui.write(message, interval=0.03)
+
+            time.sleep(1)
+
+            # Send message
+            pyautogui.press("enter")
+
+            return (
+                f"Sent WhatsApp message to {target}"
+            )
 
     except Exception as e:
 
@@ -138,10 +180,48 @@ def send_whatsapp_group_message(group_name, message):
 
 
 # =========================================================
+# COMPOSE EMAIL
+# =========================================================
+
+def compose_email(receiver, subject, body):
+
+    try:
+
+        subject_encoded = urllib.parse.quote(subject)
+
+        body_encoded = urllib.parse.quote(body)
+
+        url = (
+            f"https://mail.google.com/mail/?view=cm&fs=1"
+            f"&to={receiver}"
+            f"&su={subject_encoded}"
+            f"&body={body_encoded}"
+        )
+
+        # Open Gmail compose
+        webbrowser.open(url)
+
+        # Wait for Gmail
+        time.sleep(15)
+
+        # Send email
+        pyautogui.hotkey("ctrl", "enter")
+
+        return (
+            f"Email sent to {receiver}"
+        )
+
+    except Exception as e:
+
+        return f"Email Error: {str(e)}"
+
+
+# =========================================================
 # DETECT OPERATING SYSTEM
 # =========================================================
 
 def get_os():
+
     return py_platform.system().lower()
 
 
@@ -158,12 +238,15 @@ def open_file(path):
         os_type = get_os()
 
         if os_type == "darwin":
+
             subprocess.run(["open", full_path])
 
         elif os_type == "windows":
+
             os.startfile(full_path)
 
         elif os_type == "linux":
+
             subprocess.run(["xdg-open", full_path])
 
         return f"Opened: {full_path}"
@@ -189,6 +272,16 @@ def open_app(app_name):
             webbrowser.open("https://web.whatsapp.com")
 
             return "Opened WhatsApp Web"
+
+        # Calculator
+        if (
+            "calculator" in app_name.lower()
+            or app_name.lower() == "calc"
+        ):
+
+            subprocess.Popen("calc")
+
+            return "Opened Calculator"
 
         # Chrome
         if "chrome" in app_name.lower():
@@ -367,6 +460,7 @@ def get_weather(city="Kochi"):
         )
 
         if response.status_code == 200:
+
             return response.text.strip()
 
         return "Weather unavailable."
