@@ -78,8 +78,7 @@ def send_whatsapp_message(target, message):
             time.sleep(15)
 
             # Click message area
-            pyautogui.click(x=950, y=980)
-
+            pyautogui.click(x=280, y=110)
             time.sleep(1)
 
             # Press Enter to send
@@ -102,7 +101,8 @@ def send_whatsapp_message(target, message):
             time.sleep(15)
 
             # Click search box
-            pyautogui.click(x=250, y=175)
+           # Open search
+            pyautogui.click(x=280, y=110)
 
             time.sleep(1)
 
@@ -148,7 +148,8 @@ def send_whatsapp_group_message(group_name, message):
         time.sleep(15)
 
         # Click search box
-        pyautogui.click(x=250, y=175)
+        # Open search
+        pyautogui.click(x=300, y=180)
 
         time.sleep(1)
 

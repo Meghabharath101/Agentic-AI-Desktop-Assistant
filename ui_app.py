@@ -3,6 +3,7 @@ import json
 import html
 import re
 import streamlit as st
+from audio_recorder_streamlit import audio_recorder
 
 from agent.core import run_agent
 
@@ -40,6 +41,10 @@ st.markdown("""
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
+            
+            .stApp{
+background:#0f172a;
+}
 
     header {
         visibility: hidden;
@@ -51,7 +56,7 @@ st.markdown("""
 
     .block-container {
         padding-top: 2rem;
-        padding-bottom: 1rem;
+        padding-bottom: 120px;
     }
 
     [data-testid="stSidebar"] {
@@ -80,7 +85,7 @@ st.markdown("""
     }
 
     .user-bubble {
-        background-color: #ffffff;
+        background-color: #9ca3af;
         color: #1e293b;
         align-self: flex-end;
         border: 1px solid #e2e8f0;
@@ -115,7 +120,22 @@ st.markdown("""
         background: #334155;
         border-radius: 10px;
     }
+            
+     [data-testid="stButton"] button {
 
+    background-color: #1e293b !important;
+
+    color: white !important;
+
+    border: none !important;
+ 
+    .stChatInput {
+    position: fixed !important;
+    bottom: 20px !important;
+    z-index: 9999 !important;
+}
+
+        
 </style>
 """, unsafe_allow_html=True)
 
@@ -235,7 +255,7 @@ def parse_response(raw_response):
 with st.sidebar:
 
     st.markdown(
-        "<h1 style='font-size:22px;'>⚡ Desktop Assistant</h1>",
+        "<h1 style='font-size:22px;'>Desktop Assistant</h1>",
         unsafe_allow_html=True
     )
 
@@ -246,7 +266,7 @@ with st.sidebar:
 
     st.markdown("---")
 
-    st.markdown("### 📡 System Info")
+    st.markdown("### System Info")
 
     st.caption("OS: Windows / Linux / macOS")
     st.caption("Status: Connected")
@@ -262,15 +282,41 @@ with st.sidebar:
 
 
 # =========================================================
-# MAIN INTERFACE
+# HERO SECTION
 # =========================================================
 
-st.markdown("## Workspace")
+st.markdown("""
+<div style="
+padding:30px;
+border-radius:20px;
+background:linear-gradient(135deg,#2563eb,#7c3aed);
+color:white;
+text-align:center;
+margin-bottom:20px;
+">
 
-st.markdown(
-    "<p style='color:#64748b;'>Control your local environment via natural language.</p>",
-    unsafe_allow_html=True
-)
+<h1>🤖 Agentic AI Desktop Assistant</h1>
+
+<p>
+Voice Commands • Email Automation • WhatsApp • Web Search
+</p>
+
+</div>
+""", unsafe_allow_html=True)
+
+col1,col2,col3,col4 = st.columns(4)
+
+with col1:
+    st.info("🎤 Voice")
+
+with col2:
+    st.info("🌐 Search")
+
+with col3:
+    st.info("📧 Email")
+
+with col4:
+    st.info("💬 WhatsApp")
 
 
 # =========================================================
@@ -285,9 +331,9 @@ if "chat_history" not in st.session_state:
 # CHAT AREA
 # =========================================================
 
-chat_placeholder = st.container()
+chat_container = st.container(height=300)
 
-with chat_placeholder:
+with chat_container:
 
     for chat in st.session_state.chat_history:
 
@@ -321,20 +367,86 @@ with chat_placeholder:
 # INPUT AREA
 # =========================================================
 
-if prompt := st.chat_input(
-    "Enter a system command (e.g., 'Open Chrome')"
-):
+# =========================================================
+# INPUT AREA
+# =========================================================
+
+col1, col2 = st.columns([20,1])
+
+with col1:
+
+    prompt = st.chat_input(
+        "Enter a system command (e.g., 'Open Chrome')"
+    )
+
+with col2:
+
+    audio_bytes = audio_recorder(
+    text="",
+    icon_size="2x"
+)
+
+if audio_bytes:
+
+    current_audio = hash(audio_bytes)
+
+    if "last_audio_hash" not in st.session_state:
+        st.session_state.last_audio_hash = None
+
+    if current_audio != st.session_state.last_audio_hash:
+
+        st.session_state.last_audio_hash = current_audio
+
+        with open("voice.wav", "wb") as f:
+            f.write(audio_bytes)
+
+        import speech_recognition as sr
+
+        recognizer = sr.Recognizer()
+
+        try:
+
+            with sr.AudioFile("voice.wav") as source:
+
+                audio = recognizer.record(source)
+
+                prompt = recognizer.recognize_google(audio)
+
+                st.session_state.voice_prompt = prompt
+
+        except:
+
+            st.error("Voice not recognized")
+else:
+
+    st.session_state.processed_audio = False
+
+
+
+# =========================================================
+# PROCESS MESSAGE
+# =========================================================
+    
+if prompt or st.session_state.get("voice_prompt"):
+
+    current_prompt = prompt or st.session_state.voice_prompt
+   
+    st.session_state.current_prompt = current_prompt
+
+    
+
 
     st.session_state.chat_history.append({
-        "role": "user",
-        "content": safe_text(prompt)
-    })
-
+    "role": "user",
+    "content": current_prompt
+})
+    
+    
     with st.spinner("Processing request..."):
 
         try:
 
-            raw_response = run_agent(prompt)
+            raw_response = run_agent(current_prompt)
 
             response = parse_response(raw_response)
 
@@ -348,5 +460,10 @@ if prompt := st.chat_input(
         "role": "assistant",
         "content": response
     })
+
+    current_prompt = prompt or st.session_state.voice_prompt
+    
+    st.session_state.current_prompt = ""
+    st.session_state.voice_prompt = None
 
     st.rerun()

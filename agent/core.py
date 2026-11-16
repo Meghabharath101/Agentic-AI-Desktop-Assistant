@@ -181,7 +181,13 @@ def simple_intent_parser(user_input):
     # DATE
     # -----------------------------------------------------
 
-    if "date" in text or "today" in text:
+    if (
+    "date" in text
+    or "what is the date today" in text
+    or "current date" in text
+    or "what is the date" in text
+    or "todays date" in text
+):
 
         return {
             "type": "action",
@@ -429,6 +435,26 @@ def simple_intent_parser(user_input):
             }
         }
 
+
+# -----------------------------------------------------
+# AI CONTENT GENERATION
+# -----------------------------------------------------
+
+    if (
+    "write" in text
+    or "essay" in text
+    or "email" in text
+    or "application" in text
+    or "paragraph" in text
+   ):
+
+     ai_response = query_llm(user_input)
+
+    return {
+        "type": "answer",
+        "content": ai_response
+    }
+
     return None
 
 
@@ -469,12 +495,21 @@ def extract_clean_response(data):
         data = data.strip()
 
         if not data:
-            return "I couldn't generate a valid response."
+             return "I couldn't generate a valid response."
+
+        try:
+
+            parsed = json.loads(data)
+
+            if isinstance(parsed, dict):
+
+                if parsed.get("content"):
+                    return parsed.get("content")
+
+        except:
+            pass
 
         return data
-
-    return "I'm sorry, I couldn't process that request."
-
 
 # =========================================================
 # MAIN AGENT LOOP
@@ -527,7 +562,7 @@ def run_agent(user_input):
                 "result": result
             })
 
-            return f"[RESULT]: {result}"
+            return result
 
         if processed.get("type") == "answer":
 

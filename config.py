@@ -1,4 +1,4 @@
-MODEL = "mistral"
+MODEL = "tinyllama"
 CONTENT_MODEL = "llama3"
 
 # =========================================================

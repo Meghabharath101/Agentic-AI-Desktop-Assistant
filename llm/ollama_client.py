@@ -39,7 +39,18 @@ def query_llm(user_input):
 
     # Proper structured prompt
     prompt = f"""
-{SYSTEM_PROMPT}
+You are a helpful AI assistant.
+
+IMPORTANT RULES:
+- Return ONLY the final answer.
+- Do NOT return JSON.
+- Do NOT return tool names.
+- Do NOT explain actions.
+- Do NOT say things like:
+  'This will create a file'
+  'content_type'
+  'write_file'
+- Do NOT use markdown code blocks.
 
 User Request:
 {user_input}
